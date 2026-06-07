@@ -39,7 +39,7 @@
 
         .game-container {
             width: 100%;
-            max-width: 800px;
+            max-width: 850px;
             background: var(--card-bg);
             border-radius: 24px;
             box-shadow: 0 15px 35px rgba(46, 26, 71, 0.1);
@@ -71,7 +71,7 @@
             font-weight: 600;
         }
 
-        /* Paneles de Control */
+        /* HUD: Marcadores */
         .hud {
             display: flex;
             justify-content: space-between;
@@ -116,8 +116,7 @@
         }
 
         th, td {
-            width: 16.66%;
-            height: 70px;
+            height: 65px;
             text-align: center;
             font-size: 22px;
             font-weight: 700;
@@ -127,6 +126,7 @@
         th {
             background: #f1f5f9;
             color: var(--secondary);
+            min-width: 60px;
         }
 
         th.corner {
@@ -141,7 +141,7 @@
             color: var(--primary);
         }
 
-        /* Inputs de la Tabla */
+        /* Inputs de las Celdas */
         .cell-input {
             width: 100%;
             height: 100%;
@@ -170,7 +170,7 @@
             color: #dc2626;
         }
 
-        /* Pantallas de Inicio y Fin */
+        /* Pantallas de Inicio, Niveles y Fin */
         .screen {
             position: absolute;
             top: 0;
@@ -185,70 +185,64 @@
             z-index: 10;
             padding: 40px;
             text-align: center;
-            transition: all 0.3s ease;
         }
 
         .hidden {
             display: none !important;
-            opacity: 0;
-            pointer-events: none;
+        }
+
+        .level-selector {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
         .btn {
             background: var(--primary);
             color: white;
             border: none;
-            padding: 15px 40px;
-            font-size: 22px;
+            padding: 14px 30px;
+            font-size: 18px;
             font-weight: 700;
             font-family: 'Comfortaa', cursive;
             border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 8px 20px rgba(138, 43, 226, 0.3);
+            box-shadow: 0 6px 15px rgba(138, 43, 226, 0.2);
             transition: all 0.2s;
-            margin-top: 25px;
             display: inline-flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .btn:hover {
             background: var(--secondary);
             transform: translateY(-2px);
-            box-shadow: 0 12px 24px rgba(46, 26, 71, 0.4);
         }
 
-        .btn-restart {
-            background: var(--secondary);
-        }
-
-        .btn-restart:hover {
-            background: var(--primary);
-        }
+        .btn-l1 { background-color: #22c55e; box-shadow: 0 6px 15px rgba(34, 197, 94, 0.3); }
+        .btn-l2 { background-color: #eab308; box-shadow: 0 6px 15px rgba(234, 179, 8, 0.3); }
+        .btn-l3 { background-color: #ef4444; box-shadow: 0 6px 15px rgba(239, 68, 68, 0.3); }
 
         .icon-big {
-            font-size: 80px;
+            font-size: 70px;
             color: var(--primary);
-            margin-bottom: 20px;
-        }
-
-        .icon-win {
-            color: #16a34a;
+            margin-bottom: 15px;
         }
 
         .score-summary {
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 700;
             color: var(--secondary);
-            margin: 15px 0;
+            margin: 10px 0;
         }
 
         .score-summary span {
             color: var(--orange);
-            font-size: 36px;
+            font-size: 34px;
         }
 
-        /* Barra de Progreso del Tiempo */
         .progress-bar-container {
             width: 100%;
             height: 8px;
@@ -270,29 +264,31 @@
 
     <div class="game-container">
         <div class="screen" id="start-screen">
-            <div class="icon-big"><i class="fa-solid fa-bolt"></i></div>
+            <div class="icon-big"><i class="fa-solid fa-shuffle"></i></div>
             <h1>RetroMath <span>Flash</span></h1>
-            <p class="subtitle" style="margin-top: 10px; max-width: 500px;">
-                Completa la cuadrícula de multiplicación ingresando los valores correctos. ¡Tienes exactamente 2 minutos!
+            <p class="subtitle" style="margin-top: 10px; max-width: 550px;">
+                ¡Las tablas cambian de posición en cada nivel! Elige tu desafío. Tienes 2 minutos (120s) para completarlo.
             </p>
-            <button class="btn" id="start-btn">
-                <i class="fa-solid fa-play"></i> Iniciar Desafío
-            </button>
+            <div class="level-selector">
+                <button class="btn btn-l1" onclick="startGame(1)"><i class="fa-solid fa-baby"></i> Nivel 1 (Tablas 1-5)</button>
+                <button class="btn btn-l2" onclick="startGame(2)"><i class="fa-solid fa-graduation-cap"></i> Nivel 2 (Tablas 2-9)</button>
+                <button class="btn btn-l3" onclick="startGame(3)"><i class="fa-solid fa-fire"></i> Nivel 3 (Tablas 1-12)</button>
+            </div>
         </div>
 
         <div class="screen hidden" id="end-screen">
             <div id="end-icon" class="icon-big"><i class="fa-solid fa-trophy"></i></div>
             <h1 id="end-title">¡Tiempo Completado!</h1>
-            <p class="score-summary">Puntaje Final: <span id="final-score">0</span> / 20</p>
-            <p id="end-message" class="subtitle" style="max-width: 500px;"></p>
-            <button class="btn btn-restart" id="restart-btn">
-                <i class="fa-solid fa-rotate-right"></i> Jugar de Nuevo
+            <p class="score-summary">Puntaje Final: <span id="final-score">0</span> / <span id="total-score-target">0</span></p>
+            <p id="end-message" class="subtitle" style="max-width: 500px; margin-bottom: 15px;"></p>
+            <button class="btn" style="background: var(--secondary);" onclick="showMenu()">
+                <i class="fa-solid fa-bars"></i> Volver al Menú
             </button>
         </div>
 
         <header>
             <h1>RetroMath <span>Flash</span></h1>
-            <p class="subtitle">El Desafío de los 2 Minutos</p>
+            <p class="subtitle" id="game-level-title">Nivel</p>
         </header>
 
         <div class="progress-bar-container">
@@ -306,205 +302,10 @@
             </div>
             <div class="hud-item">
                 <i class="fa-solid fa-star"></i>
-                <span>Puntos: <span id="score">0</span>/20</span>
+                <span>Puntos: <span id="score">0</span>/<span id="hud-total">0</span></span>
             </div>
         </div>
 
         <div class="matrix-wrapper">
             <table>
-                <thead>
-                    <tr>
-                        <th class="corner">×</th>
-                        <th>6</th>
-                        <th>7</th>
-                        <th>8</th>
-                        <th>9</th>
-                        <th>12</th>
-                    </tr>
-                </thead>
-                <tbody id="matrix-body">
-                    </tbody>
-            </table>
-        </div>
-    </div>
-
-    <script>
-        // Configuración de la matriz basada en la solicitud exacta del usuario
-        const rows = [2, 3, 4, 5];
-        const cols = [6, 7, 8, 9, 12];
-        
-        let timeLeft = 120; // 2 minutos en segundos
-        let timerId = null;
-        let score = 0;
-        const totalQuestions = rows.length * cols.length;
-
-        const matrixBody = document.getElementById('matrix-body');
-        const timerDisplay = document.getElementById('timer');
-        const scoreDisplay = document.getElementById('score');
-        const timeBar = document.getElementById('time-bar');
-        
-        const startScreen = document.getElementById('start-screen');
-        const endScreen = document.getElementById('end-screen');
-        const startBtn = document.getElementById('start-btn');
-        const restartBtn = document.getElementById('restart-btn');
-        
-        const finalScoreDisplay = document.getElementById('final-score');
-        const endTitle = document.getElementById('end-title');
-        const endMessage = document.getElementById('end-message');
-        const endIcon = document.getElementById('end-icon');
-
-        // Generar la interfaz de la tabla de multiplicación
-        function buildMatrix() {
-            matrixBody.innerHTML = '';
-            rows.forEach(row => {
-                const tr = document.createElement('tr');
-                
-                // Cabecera de la fila
-                const th = document.createElement('th');
-                th.classList.add('row-header');
-                th.textContent = row;
-                tr.appendChild(th);
-                
-                // Celdas de respuestas
-                cols.forEach(col => {
-                    const td = document.createElement('td');
-                    const input = document.createElement('input');
-                    input.type = 'number';
-                    input.classList.add('cell-input');
-                    input.dataset.row = row;
-                    input.dataset.col = col;
-                    input.dataset.answer = row * col;
-                    
-                    // Validar la respuesta en tiempo real al escribir
-                    input.addEventListener('input', checkAnswer);
-                    
-                    td.appendChild(input);
-                    tr.appendChild(td);
-                });
-                
-                matrixBody.appendChild(tr);
-            });
-        }
-
-        // Verificar la respuesta ingresada
-        function checkAnswer(e) {
-            const input = e.target;
-            const val = parseInt(input.value);
-            const correctAnswer = parseInt(input.dataset.answer);
-
-            if (isNaN(val)) {
-                // Si borran el número, removemos estilos
-                if(input.classList.contains('correct')) {
-                    input.classList.remove('correct');
-                    updateScore(-1);
-                }
-                input.classList.remove('incorrect');
-                return;
-            }
-
-            if (val === correctAnswer) {
-                if (!input.classList.contains('correct')) {
-                    input.classList.remove('incorrect');
-                    input.classList.add('correct');
-                    input.disabled = true; // Bloquear si es correcta estilo flash real
-                    updateScore(1);
-                }
-            } else {
-                // Si cambia de correcto a incorrecto (caso borde) o es erróneo
-                if (input.classList.contains('correct')) {
-                    input.classList.remove('correct');
-                    updateScore(-1);
-                }
-                // Añade feedback visual de error, pero permite seguir intentando
-                if (input.value.length >= correctAnswer.toString().length) {
-                    input.classList.add('incorrect');
-                } else {
-                    input.classList.remove('incorrect');
-                }
-            }
-        }
-
-        function updateScore(amount) {
-            score += amount;
-            scoreDisplay.textContent = score;
-            
-            // Si logra completar todas correctamente antes del tiempo
-            if (score === totalQuestions) {
-                endGame(true);
-            }
-        }
-
-        // Control del tiempo
-        function startTimer() {
-            timeLeft = 120;
-            timeBar.style.width = '100%';
-            updateTimerDisplay();
-            
-            timerId = setInterval(() => {
-                timeLeft--;
-                updateTimerDisplay();
-                
-                // Actualizar barra de progreso visual
-                const percentage = (timeLeft / 120) * 100;
-                timeBar.style.width = `${percentage}%`;
-                
-                if (timeLeft <= 0) {
-                    clearInterval(timerId);
-                    endGame(false);
-                }
-            }, 1000);
-        }
-
-        function updateTimerDisplay() {
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        }
-
-        // Iniciar el ciclo de juego
-        function startGame() {
-            score = 0;
-            scoreDisplay.textContent = '0';
-            startScreen.classList.add('hidden');
-            endScreen.classList.add('hidden');
-            buildMatrix();
-            startTimer();
-            
-            // Enfocar automáticamente el primer input
-            setTimeout(() => {
-                const firstInput = document.querySelector('.cell-input');
-                if(firstInput) firstInput.focus();
-            }, 100);
-        }
-
-        // Terminar el juego (Por tiempo o victoria completa)
-        function endGame(perfectScore) {
-            clearInterval(timerId);
-            finalScoreDisplay.textContent = score;
-            
-            if (perfectScore || score === totalQuestions) {
-                endIcon.innerHTML = '<i class="fa-solid fa-trophy" style="color: #eab308;"></i>';
-                endTitle.textContent = "¡Maestría Conseguida!";
-                endMessage.textContent = "¡Increíble! Lograste completar toda la cuadrícula flash dentro del estándar de oro de los 2 minutos. Eres un profesional de RetroMath.";
-            } else if (score >= 15) {
-                endIcon.innerHTML = '<i class="fa-solid fa-medal" style="color: #94a3b8;"></i>';
-                endTitle.textContent = "¡Nivel Avanzado!";
-                endMessage.textContent = "¡Muy buen ritmo! Completaste la gran mayoría de la matriz. Con un poco más de práctica diaria lograrás la automatización total.";
-            } else {
-                endIcon.innerHTML = '<i class="fa-solid fa-brain" style="color: #8a2be2;"></i>';
-                endTitle.textContent = "¡Buen Intento!";
-                endMessage.textContent = "¡Buen esfuerzo de agilidad! Recuerda usar las tácticas de anclaje (las del 2 y del 5 primero) para ganar valiosos segundos la próxima vez.";
-            }
-            
-            endScreen.classList.remove('hidden');
-        }
-
-        // Event Listeners
-        startBtn.addEventListener('click', startGame);
-        restartBtn.addEventListener('click', startGame);
-
-        // Inicializar estructura vacía al cargar
-        buildMatrix();
-    </script>
-</body>
-</html>
+                <thead id="matrix-head">
