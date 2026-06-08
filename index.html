@@ -2,310 +2,952 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RetroMath Flash Challenge</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Afacad+Flux:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RetroMath Flash</title>
     <style>
+        /* ==========================================================================
+           1. RESET Y VARIABLES GLOBALES
+           ========================================================================== */
         :root {
-            --primary: #8a2be2;
-            --secondary: #2e1a47;
-            --accent: #d1ff4c;
-            --orange: #ff8c00;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text: #334155;
-            --border: #e2e8f0;
+            --bg-color: #f1f5f9;         /* Fondo de descanso visual */
+            --text-dark: #2e1a47;        /* Morado oscuro profundo (Alto contraste) */
+            --accent-purple: #8a2be2;    /* Morado eléctrico */
+            --accent-orange: #ff8c00;    /* Naranja vibrante */
+            --correct-bg: #bbf7d0;       /* Verde claro brillante */
+            --incorrect-bg: #fecaca;     /* Rojo suave de advertencia */
+            --header-bg: #e9d5ff;        /* Fondo para los encabezados de la tabla */
+            --font-main: 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            font-family: var(--font-main);
+            color: var(--text-dark);
         }
 
+        /* ==========================================================================
+           2. LAYOUT PRINCIPAL Y ANTI-SCROLL
+           ========================================================================== */
         body {
-            font-family: 'Afacad Flux', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
+            background-color: var(--bg-color);
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start; /* Evita que se corte por abajo en tablets */
             min-height: 100vh;
-            padding: 20px;
+            padding: 2rem 1rem;
         }
 
         .game-container {
             width: 100%;
-            max-width: 850px;
-            background: var(--card-bg);
-            border-radius: 24px;
-            box-shadow: 0 15px 35px rgba(46, 26, 71, 0.1);
-            padding: 30px;
-            border: 2px solid var(--border);
-            position: relative;
-            overflow: hidden;
+            max-width: 850px; /* Control estricto para monitores grandes */
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(46, 26, 71, 0.1);
+            padding: 2rem;
+            overflow: hidden; /* Seguridad anti-desbordamiento */
         }
 
-        header {
+        /* ==========================================================================
+           3. UI / HUD
+           ========================================================================== */
+        h1, h2 {
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 1.5rem;
+            color: var(--accent-purple);
         }
 
-        h1 {
-            font-family: 'Comfortaa', cursive;
-            color: var(--secondary);
-            font-size: 36px;
-            margin-bottom: 5px;
+        .screen {
+            display: none;
+            width: 100%;
         }
 
-        h1 span {
-            color: var(--primary);
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.4s ease-in-out;
         }
 
-        .subtitle {
-            font-size: 18px;
-            color: #64748b;
-            font-weight: 600;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* HUD: Marcadores */
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.5) translateY(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .pop-active {
+            animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        button {
+            background-color: var(--accent-orange);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 400px;
+            transition: transform 0.1s, background-color 0.2s;
+            box-shadow: 0 4px 6px rgba(255, 140, 0, 0.3);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:hover {
+            background-color: #e67e22;
+        }
+
+        button.btn-cancel {
+            background-color: var(--text-dark);
+            box-shadow: 0 4px 6px rgba(46, 26, 71, 0.3);
+            max-width: 200px;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+        }
+
+        .best-time-label {
+            font-size: 0.9rem;
+            color: var(--accent-purple);
+            margin-top: 0.5rem;
+            font-weight: bold;
+        }
+
+        /* HUD - Barra superior */
         .hud {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: var(--secondary);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 16px;
-            margin-bottom: 25px;
-        }
-
-        .hud-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 20px;
-            font-weight: 700;
-        }
-
-        .hud-item i {
-            color: var(--accent);
-        }
-
-        .timer-highlight {
-            color: var(--orange);
-            font-family: 'Comfortaa', cursive;
-            font-size: 24px;
-        }
-
-        /* Grilla del Juego */
-        .matrix-wrapper {
-            overflow-x: auto;
-            margin-bottom: 25px;
-            border-radius: 16px;
-            border: 2px solid var(--border);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-        }
-
-        th, td {
-            height: 65px;
-            text-align: center;
-            font-size: 22px;
-            font-weight: 700;
-            border: 1px solid var(--border);
-        }
-
-        th {
-            background: #f1f5f9;
-            color: var(--secondary);
-            min-width: 60px;
-        }
-
-        th.corner {
-            background: var(--secondary);
-            color: var(--accent);
-            font-family: 'Comfortaa', cursive;
-            font-size: 26px;
-        }
-
-        th.row-header {
-            background: #f1f5f9;
-            color: var(--primary);
-        }
-
-        /* Inputs de las Celdas */
-        .cell-input {
-            width: 100%;
-            height: 100%;
-            border: none;
-            text-align: center;
-            font-size: 22px;
-            font-weight: 700;
-            font-family: 'Afacad Flux', sans-serif;
-            color: var(--secondary);
-            background: transparent;
-            transition: all 0.2s;
-        }
-
-        .cell-input:focus {
-            outline: 2px solid var(--primary);
-            background: #f8fafc;
-        }
-
-        .cell-input.correct {
-            background-color: #f0fdf4 !important;
-            color: #16a34a;
-        }
-
-        .cell-input.incorrect {
-            background-color: #fef2f2 !important;
-            color: #dc2626;
-        }
-
-        /* Pantallas de Inicio, Niveles y Fin */
-        .screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.98);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-            padding: 40px;
-            text-align: center;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .level-selector {
-            display: flex;
-            gap: 15px;
-            margin-top: 25px;
+            margin-bottom: 1rem;
             flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 14px 30px;
-            font-size: 18px;
-            font-weight: 700;
-            font-family: 'Comfortaa', cursive;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 6px 15px rgba(138, 43, 226, 0.2);
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
             gap: 10px;
         }
 
-        .btn:hover {
-            background: var(--secondary);
-            transform: translateY(-2px);
+        .timer-display {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            font-variant-numeric: tabular-nums;
         }
 
-        .btn-l1 { background-color: #22c55e; box-shadow: 0 6px 15px rgba(34, 197, 94, 0.3); }
-        .btn-l2 { background-color: #eab308; box-shadow: 0 6px 15px rgba(234, 179, 8, 0.3); }
-        .btn-l3 { background-color: #ef4444; box-shadow: 0 6px 15px rgba(239, 68, 68, 0.3); }
-
-        .icon-big {
-            font-size: 70px;
-            color: var(--primary);
-            margin-bottom: 15px;
-        }
-
-        .score-summary {
-            font-size: 26px;
-            font-weight: 700;
-            color: var(--secondary);
-            margin: 10px 0;
-        }
-
-        .score-summary span {
-            color: var(--orange);
-            font-size: 34px;
-        }
-
-        .progress-bar-container {
+        .progress-container {
             width: 100%;
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 4px;
-            margin-bottom: 20px;
+            height: 12px;
+            background-color: #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
             overflow: hidden;
         }
 
         .progress-bar {
             height: 100%;
+            background-color: var(--accent-purple);
             width: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--orange));
-            transition: width 1s linear;
+            transition: width 1s linear, background-color 0.3s;
+        }
+
+        /* ==========================================================================
+           4. TABLA FLUIDA (Núcleo de la mecánica anti-scroll)
+           ========================================================================== */
+        .table-container {
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            table-layout: fixed; /* OBLIGATORIO: Fuerza a la tabla a no desbordarse */
+            border-collapse: collapse;
+            border: 3px solid var(--text-dark);
+        }
+
+        th, td {
+            border: 2px solid var(--text-dark);
+            padding: 0;
+            height: 4rem; /* Altura generosa para touch (iPad) */
+            text-align: center;
+            vertical-align: middle;
+            font-weight: bold;
+        }
+
+        th {
+            background-color: var(--header-bg);
+            font-size: calc(16px + 1vw); /* Tipografía fluida */
+        }
+
+        td {
+            position: relative;
+        }
+
+        /* Inputs adaptables 100% a la celda */
+        input[type="number"] {
+            width: 100%;
+            height: 100%;
+            border: none;
+            outline: none;
+            text-align: center;
+            font-size: calc(18px + 1vw); /* Tipografía fluida basada en el viewport */
+            font-weight: bold;
+            background: transparent;
+            -moz-appearance: textfield; /* Quitar flechas en Firefox */
+        }
+
+        /* Quitar flechas en Chrome/Safari */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input:focus {
+            background-color: rgba(138, 43, 226, 0.1);
+        }
+
+        /* Estados de Validación */
+        input.correct {
+            background-color: var(--correct-bg) !important;
+            color: #065f46;
+        }
+
+        input.incorrect {
+            background-color: var(--incorrect-bg) !important;
+            color: #991b1b;
+        }
+
+        /* ==========================================================================
+           5. RESULTADOS
+           ========================================================================== */
+        .results-box {
+            text-align: center;
+            padding: 2rem;
+            background: #faf5ff;
+            border: 2px dashed var(--accent-purple);
+            border-radius: 12px;
+        }
+        .medal-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        .title-earned {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-orange);
+            margin-bottom: 1rem;
+        }
+
+        /* ==========================================================================
+           6. MODAL DE PAUSA
+           ========================================================================== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(46, 26, 71, 0.6);
+            display: none; /* Oculto por defecto */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.2s ease-in-out;
+        }
+
+        .modal-overlay.active {
+            display: flex; /* Visible cuando tiene la clase active */
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
         }
     </style>
 </head>
 <body>
 
     <div class="game-container">
-        <div class="screen" id="start-screen">
-            <div class="icon-big"><i class="fa-solid fa-shuffle"></i></div>
-            <h1>RetroMath <span>Flash</span></h1>
-            <p class="subtitle" style="margin-top: 10px; max-width: 550px;">
-                ¡Las tablas cambian de posición en cada nivel! Elige tu desafío. Tienes 2 minutos (120s) para completarlo.
-            </p>
-            <div class="level-selector">
-                <button class="btn btn-l1" onclick="startGame(1)"><i class="fa-solid fa-baby"></i> Nivel 1 (Tablas 1-5)</button>
-                <button class="btn btn-l2" onclick="startGame(2)"><i class="fa-solid fa-graduation-cap"></i> Nivel 2 (Tablas 2-9)</button>
-                <button class="btn btn-l3" onclick="startGame(3)"><i class="fa-solid fa-fire"></i> Nivel 3 (Tablas 1-12)</button>
+        
+        <!-- PANTALLA 0: Selección de Género -->
+        <div id="screen-gender" class="screen">
+            <h1>👋 ¡Hola!</h1>
+            <p style="text-align: center; margin-bottom: 2rem; font-size: 1.2rem;">Antes de empezar, cuéntame...</p>
+            <div class="menu-buttons">
+                <button onclick="setGender('girl')" style="background-color: #ff69b4; box-shadow: 0 4px 6px rgba(255, 105, 180, 0.3);">👧 Soy Niña</button>
+                <button onclick="setGender('boy')" style="background-color: #4169e1; box-shadow: 0 4px 6px rgba(65, 105, 225, 0.3);">👦 Soy Niño</button>
             </div>
         </div>
 
-        <div class="screen hidden" id="end-screen">
-            <div id="end-icon" class="icon-big"><i class="fa-solid fa-trophy"></i></div>
-            <h1 id="end-title">¡Tiempo Completado!</h1>
-            <p class="score-summary">Puntaje Final: <span id="final-score">0</span> / <span id="total-score-target">0</span></p>
-            <p id="end-message" class="subtitle" style="max-width: 500px; margin-bottom: 15px;"></p>
-            <button class="btn" style="background: var(--secondary);" onclick="showMenu()">
-                <i class="fa-solid fa-bars"></i> Volver al Menú
-            </button>
-        </div>
-
-        <header>
-            <h1>RetroMath <span>Flash</span></h1>
-            <p class="subtitle" id="game-level-title">Nivel</p>
-        </header>
-
-        <div class="progress-bar-container">
-            <div class="progress-bar" id="time-bar"></div>
-        </div>
-
-        <div class="hud">
-            <div class="hud-item">
-                <i class="fa-solid fa-clock"></i>
-                <span id="timer" class="timer-highlight">02:00</span>
+        <!-- PANTALLA 1: Menú Principal -->
+        <div id="screen-menu" class="screen">
+            <h1>⚡ RetroMath Flash</h1>
+            <p style="text-align: center; margin-bottom: 1rem;">¡Entrena tu mente a la velocidad de la luz!</p>
+            <p id="menu-global-score" style="text-align: center; margin-bottom: 2rem; font-size: 1.2rem; font-weight: bold; color: var(--accent-orange);">Puntos Acumulados: 0</p>
+            <div id="time-selector" style="margin-bottom: 1.5rem; text-align: center;">
+                <p style="font-size: 1.1rem; font-weight: bold; color: var(--accent-purple); margin-bottom: 0.5rem;">⏱️ Elige el tiempo de juego:</p>
+                <div style="display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap;">
+                    <button class="btn-cancel time-btn" onclick="setTimeMode(120)" id="tbtn-120" style="background-color: var(--accent-orange);">2 Minutos</button>
+                    <button class="btn-cancel time-btn" onclick="setTimeMode(300)" id="tbtn-300">5 Minutos</button>
+                    <button class="btn-cancel time-btn" onclick="setTimeMode(0)" id="tbtn-0">Sin Tiempo</button>
+                </div>
             </div>
-            <div class="hud-item">
-                <i class="fa-solid fa-star"></i>
-                <span>Puntos: <span id="score">0</span>/<span id="hud-total">0</span></span>
+            <div class="menu-buttons">
+                <div style="width: 100%; max-width: 400px; text-align: center;">
+                    <button onclick="startGame(1)">Nivel 1: Básico (3x3)</button>
+                    <div class="best-time-label" id="best-time-1">⏱️ Mejor tiempo: --:--</div>
+                </div>
+                <div style="width: 100%; max-width: 400px; text-align: center;">
+                    <button onclick="startGame(2)">Nivel 2: Intermedio (4x4)</button>
+                    <div class="best-time-label" id="best-time-2">⏱️ Mejor tiempo: --:--</div>
+                </div>
+                <div style="width: 100%; max-width: 400px; text-align: center;">
+                    <button onclick="startGame(3)">Nivel 3: RetroMath Pro (4x5)</button>
+                    <div class="best-time-label" id="best-time-3">⏱️ Mejor tiempo: --:--</div>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem; width: 100%; max-width: 400px; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn-cancel" onclick="toggleSound()" id="btn-sound">🔊 Sonido: ON</button>
+                    <button class="btn-cancel" onclick="switchScreen('screen-gender')">⚙️ Cambiar Perfil</button>
+                    <button class="btn-cancel" onclick="resetProgress()" style="background-color: #dc2626;">🗑️ Borrar Progreso</button>
+                </div>
             </div>
         </div>
 
-        <div class="matrix-wrapper">
-            <table>
-                <thead id="matrix-head">
+        <!-- PANTALLA 2: Área de Juego (HUD + Pizarra) -->
+        <div id="screen-game" class="screen">
+            <div class="hud">
+                <div class="timer-display" id="timer-text">02:00</div>
+                <button class="btn-cancel" onclick="cancelGame()">Cancelar / Volver</button>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            
+            <div class="table-container">
+                <table id="math-grid">
+                    <!-- Se inyectará dinámicamente con JS -->
+                </table>
+            </div>
+        </div>
+
+        <!-- PANTALLA 3: Resultados -->
+        <div id="screen-result" class="screen">
+            <h2>Resultados del Entrenamiento</h2>
+            <div class="results-box">
+                <div id="result-icon" class="medal-icon"></div>
+                <div id="result-title" class="title-earned"></div>
+                <p id="result-message" style="font-size: 1.2rem; margin-bottom: 1rem;"></p>
+                <div id="prize-selection" style="display: none; margin-bottom: 1.5rem; flex-direction: column; align-items: center; gap: 1rem;">
+                    <p style="font-size: 1.2rem; font-weight: bold; color: var(--accent-purple);">¡Elige tu premio sorpresa!</p>
+                    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                        <button onclick="showPrize('joke')" style="background-color: #ffb6c1; color: var(--text-dark); max-width: 150px; box-shadow: 0 4px 6px rgba(255, 182, 193, 0.4); padding: 0.5rem 1rem; font-size: 1.1rem;">😂 Chiste</button>
+                        <button onclick="showPrize('story')" style="background-color: #87cefa; color: var(--text-dark); max-width: 150px; box-shadow: 0 4px 6px rgba(135, 206, 250, 0.4); padding: 0.5rem 1rem; font-size: 1.1rem;">📖 Cuento</button>
+                    </div>
+                </div>
+                <p id="result-surprise" style="font-size: 1.1rem; font-style: italic; color: var(--text-dark); margin-bottom: 1.5rem; padding: 1rem; border-radius: 8px; display: none;"></p>
+                <p id="result-best-time" style="font-size: 1.1rem; margin-bottom: 1rem; font-weight: bold; color: var(--accent-purple);"></p>
+                <p id="result-global-score" style="font-size: 1.2rem; margin-bottom: 2rem; font-weight: bold; color: var(--accent-orange);"></p>
+                <div class="menu-buttons">
+                    <button id="btn-replay" onclick="startGame(currentLevelId)">Jugar de Nuevo</button>
+                    <button id="btn-next-level" style="display: none; background-color: #32cd32; box-shadow: 0 4px 6px rgba(50, 205, 50, 0.3);">Pasar al Siguiente Nivel</button>
+                    <button class="btn-cancel" onclick="showMenu()">Volver al Menú</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- PANTALLA DE PAUSA (MODAL) -->
+    <div id="pause-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Partida en Pausa</h2>
+            <p>¿Qué deseas hacer?</p>
+            <div class="modal-buttons">
+                <button onclick="resumeGame()">Continuar Partida</button>
+                <button class="btn-cancel" onclick="confirmCancel()">Salir al Menú</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * ==========================================================================
+         *  CONFIGURACIÓN DEL JUEGO Y GAMIFICACIÓN
+         * ==========================================================================
+         */
+        let GAME_DURATION = 120; 
+        let selectedDuration = 120; // 120, 300 o 0 (Sin tiempo)
+        
+        const LEVELS = {
+            1: { 
+                rows: 3, cols: 3, min: 2, max: 5, 
+                medal: "🎖️", title: "Iniciada del Cálculo" 
+            },
+            2: { 
+                rows: 4, cols: 4, min: 2, max: 9, 
+                medal: "🥈", title: "Experta Numérica" 
+            },
+            3: { 
+                rows: 4, cols: 5, min: 2, max: 12, 
+                medal: "👑", title: "Gran Maestra de RetroMath" 
+            }
+        };
+
+        // Variables de Estado (State)
+        let currentLevelObj = null;
+        let currentLevelId = null;
+        let timeRemaining = 0;
+        let timerInterval = null;
+        let totalCells = 0;
+        let correctAnswers = 0;
+        let audioCtx = null; // Contexto de audio
+        let globalScore = parseInt(localStorage.getItem('retroMathGlobalScore')) || 0;
+        let playerGender = localStorage.getItem('retroMathGender'); // 'boy' o 'girl'
+        let soundEnabled = localStorage.getItem('retroMathSound') !== 'off'; // Activado por defecto
+        let consecutiveFails = parseInt(localStorage.getItem('retroMathFails')) || 0;
+        let isZenMode = false;
+
+        const JOKES = [
+            "¿Por qué el cuaderno de matemáticas estaba triste? ¡Porque tenía demasiados problemas!",
+            "¿Qué le dice el número 1 al número 10? ¡Para ser como yo, tienes que ser sin-cero!",
+            "¿Qué hace un cero cuando ve a un ocho? Le dice: ¡Oye, me gusta tu cinturón!",
+            "¿Qué le dice una calculadora a otra calculadora? ¡Puedes contar conmigo!",
+            "¿Qué son 50 físicos y 50 químicos juntos? ¡Pues 100tíficos!",
+            "¿Cuál es la materia favorita de las brujas? ¡Las mate-mágicas!"
+        ];
+
+        const STORIES = [
+            "Caperucita Roja: Una niña va a visitar a su abuelita, pero se encuentra con un lobo astuto. ¡Al final, un valiente leñador las rescata a las dos!",
+            "Los Tres Cerditos: Tres hermanos construyen casas de paja, madera y ladrillo. Solo la casa de ladrillo resiste los soplidos del lobo feroz.",
+            "El Patito Feo: Un patito que parecía diferente a sus hermanos sufre burlas, pero al crecer se convierte en el cisne más hermoso del lago.",
+            "Pinocho: Un muñeco de madera cobra vida gracias a un hada. Después de aprender a no mentir (¡porque le crecía la nariz!), se convierte en un niño de verdad.",
+            "Cenicienta: Una joven bondadosa es ayudada por su hada madrina para ir al baile real, donde pierde una zapatilla de cristal que la lleva a su final feliz.",
+            "Hansel y Gretel: Dos hermanos se pierden en el bosque y encuentran una casa de dulces. Con ingenio, logran escapar de la bruja que vivía allí."
+        ];
+
+        // Cache de elementos del DOM
+        const pauseModal = document.getElementById('pause-modal');
+
+        /**
+         * ==========================================================================
+         *  LÓGICA PRINCIPAL (Navegación e Inicialización)
+         * ==========================================================================
+         */
+        function setTimeMode(seconds) {
+            selectedDuration = seconds;
+            document.querySelectorAll('.time-btn').forEach(btn => {
+                btn.style.backgroundColor = 'var(--text-dark)';
+            });
+            document.getElementById('tbtn-' + seconds).style.backgroundColor = 'var(--accent-orange)';
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return; // Salir si el sonido está silenciado
+
+            // Inicializar el contexto de audio solo cuando el usuario interactúe
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            if (type === 'correct') {
+                oscillator.type = 'sine'; // Tono suave tipo campana
+                oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'incorrect') {
+                oscillator.type = 'sawtooth'; // Tono rasposo tipo zumbido
+                oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.2);
+            } else if (type === 'level-up') {
+                oscillator.type = 'square'; // Onda cuadrada para un sonido retro/8-bit
+                const now = audioCtx.currentTime;
+                
+                // Melodía rápida ascendente (Arpegio triunfal estilo Mario)
+                oscillator.frequency.setValueAtTime(392.00, now);        // Sol
+                oscillator.frequency.setValueAtTime(523.25, now + 0.1);  // Do
+                oscillator.frequency.setValueAtTime(659.25, now + 0.2);  // Mi
+                oscillator.frequency.setValueAtTime(783.99, now + 0.3);  // Sol agudo
+                oscillator.frequency.setValueAtTime(1046.50, now + 0.4); // Do agudo
+                oscillator.frequency.setValueAtTime(1318.51, now + 0.5); // Mi muy agudo (se mantiene)
+                
+                gainNode.gain.setValueAtTime(0.05, now); // Volumen un poco más bajo
+                gainNode.gain.setValueAtTime(0.05, now + 0.8);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1.2); // Desvanecimiento
+                
+                oscillator.start();
+                oscillator.stop(now + 1.2);
+            }
+        }
+
+        function showPrize(type) {
+            const prizeSelectionEl = document.getElementById('prize-selection');
+            const surpriseEl = document.getElementById('result-surprise');
+            
+            prizeSelectionEl.style.display = 'none'; // Ocultar botones de elección
+            
+            if (type === 'joke') {
+                const randomJoke = JOKES[Math.floor(Math.random() * JOKES.length)];
+                surpriseEl.style.background = '#fdf2f8'; // Fondo rosado suave
+                surpriseEl.innerHTML = `<strong>¡Aquí tienes tu chiste!</strong> 😄<br><br>"${randomJoke}"`;
+            } else {
+                const randomStory = STORIES[Math.floor(Math.random() * STORIES.length)];
+                surpriseEl.style.background = '#eff6ff'; // Fondo azulado suave
+                surpriseEl.innerHTML = `<strong>¡Mini-Cuento Clásico!</strong> 📖<br><br>${randomStory}`;
+            }
+            
+            // Reiniciar y aplicar la animación
+            surpriseEl.classList.remove('pop-active');
+            void surpriseEl.offsetWidth; // Truco técnico para reiniciar la animación CSS
+            surpriseEl.classList.add('pop-active');
+            surpriseEl.style.display = 'block';
+        }
+
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            localStorage.setItem('retroMathSound', soundEnabled ? 'on' : 'off');
+            updateSoundButton();
+        }
+
+        function updateSoundButton() {
+            const btn = document.getElementById('btn-sound');
+            if (btn) btn.textContent = soundEnabled ? '🔊 Sonido: ON' : '🔇 Sonido: OFF';
+        }
+
+        function initApp() {
+            updateSoundButton();
+            if (!playerGender) {
+                switchScreen('screen-gender');
+            } else {
+                showMenu();
+            }
+        }
+
+        function setGender(gender) {
+            playerGender = gender;
+            localStorage.setItem('retroMathGender', gender);
+            showMenu();
+        }
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function updateMenuBestTimes() {
+            [1, 2, 3].forEach(level => {
+                const savedBest = localStorage.getItem('retroMathBest_' + level);
+                const labelEl = document.getElementById('best-time-' + level);
+                if (labelEl) {
+                    if (savedBest) {
+                        labelEl.textContent = "⏱️ Mejor tiempo: " + formatTime(parseInt(savedBest));
+                    } else {
+                        labelEl.textContent = "⏱️ Mejor tiempo: --:--"; // Vuelve a su estado inicial si no hay récord
+                    }
+                }
+            });
+        }
+
+        function updateGlobalScoreDisplay() {
+            const menuScoreEl = document.getElementById('menu-global-score');
+            const resultScoreEl = document.getElementById('result-global-score');
+            if (menuScoreEl) menuScoreEl.textContent = `Puntos Acumulados: ${globalScore}`;
+            if (resultScoreEl) resultScoreEl.textContent = `⭐ Puntos Totales Acumulados: ${globalScore}`;
+        }
+
+        function resetProgress() {
+            if(confirm("¿Estás seguro de que quieres borrar todo el progreso? Esto pondrá los puntos y mejores tiempos a cero.")) {
+                localStorage.removeItem('retroMathGlobalScore');
+                localStorage.removeItem('retroMathFails');
+                [1, 2, 3].forEach(level => {
+                    localStorage.removeItem('retroMathBest_' + level);
+                    localStorage.removeItem('retroMathWins_' + level);
+                });
+                globalScore = 0;
+                consecutiveFails = 0;
+                updateGlobalScoreDisplay();
+                updateMenuBestTimes();
+            }
+        }
+
+        function showMenu() {
+            switchScreen('screen-menu');
+            updateMenuBestTimes();
+        }
+
+        // Selecciona números únicos al azar para los encabezados de la pizarra
+        function getRandomUniqueNumbers(count, min, max) {
+            const numSet = new Set();
+            while (numSet.size < count) {
+                const randomNum = Math.floor(Math.random() * (max - min + 1)) + min;
+                numSet.add(randomNum);
+            }
+            return Array.from(numSet).sort(() => Math.random() - 0.5); // Desordena
+        }
+
+        function startGame(levelId) {
+            currentLevelObj = LEVELS[levelId];
+            currentLevelId = levelId;
+            correctAnswers = 0;
+            isZenMode = (selectedDuration === 0);
+            if (!isZenMode) GAME_DURATION = selectedDuration;
+            totalCells = currentLevelObj.rows * currentLevelObj.cols;
+            
+            buildGrid(currentLevelObj);
+            
+            switchScreen('screen-game');
+            
+            // Foco en el primer input al iniciar
+            const firstInput = document.querySelector('input[type="number"]');
+            if(firstInput) firstInput.focus();
+
+            clearInterval(timerInterval);
+            if (!isZenMode) {
+                timeRemaining = GAME_DURATION;
+                updateHUD();
+                timerInterval = setInterval(gameTick, 1000);
+            } else {
+                document.getElementById('timer-text').textContent = '∞';
+                document.getElementById('progress-bar').style.width = '100%';
+                document.getElementById('progress-bar').style.backgroundColor = 'var(--correct-bg)';
+            }
+        }
+
+        function cancelGame() {
+            clearInterval(timerInterval);
+            pauseModal.classList.add('active');
+        }
+
+        function resumeGame() {
+            pauseModal.classList.remove('active');
+            // Reanuda el contador solo si la partida no ha terminado
+            if (timeRemaining > 0) {
+                timerInterval = setInterval(gameTick, 1000);
+            }
+        }
+
+        function confirmCancel() {
+            // El timer ya está detenido por cancelGame()
+            pauseModal.classList.remove('active');
+            showMenu();
+        }
+
+        /**
+         * ==========================================================================
+         *  CONSTRUCCIÓN DE LA PIZARRA (DOM y Math Logic)
+         * ==========================================================================
+         */
+        function buildGrid(levelConf) {
+            const table = document.getElementById('math-grid');
+            table.innerHTML = ''; // Limpiar grilla anterior
+
+            // Obtener números mezclados para columnas y filas (Dinamismo Crítico)
+            const colHeaders = getRandomUniqueNumbers(levelConf.cols, levelConf.min, levelConf.max);
+            const rowHeaders = getRandomUniqueNumbers(levelConf.rows, levelConf.min, levelConf.max);
+
+            // 1. Crear fila de encabezados (Thead)
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            
+            // Celda vacía en la esquina superior izquierda (simulando operador x)
+            const cornerTh = document.createElement('th');
+            cornerTh.textContent = '×';
+            cornerTh.style.color = 'var(--accent-orange)';
+            headerRow.appendChild(cornerTh);
+
+            // Celdas de encabezado de columnas (eje horizontal superior)
+            colHeaders.forEach(num => {
+                const th = document.createElement('th');
+                th.textContent = num;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            // 2. Crear cuerpo de la tabla (Tbody) y sus inputs
+            const tbody = document.createElement('tbody');
+            
+            rowHeaders.forEach((rowNum) => {
+                const tr = document.createElement('tr');
+                
+                // Celda de encabezado de fila (eje vertical izquierdo)
+                const thRow = document.createElement('th');
+                thRow.textContent = rowNum;
+                tr.appendChild(thRow);
+
+                // Celdas interactivas
+                colHeaders.forEach((colNum) => {
+                    const td = document.createElement('td');
+                    const input = document.createElement('input');
+                    
+                    input.type = 'number';
+                    const correctAnswer = rowNum * colNum;
+                    
+                    // Almacenamos la respuesta en atributos data
+                    input.dataset.answer = correctAnswer;
+                    
+                    // Evento 'input' para validación en tiempo real sin presionar Enter
+                    input.addEventListener('input', handleInput);
+                    
+                    td.appendChild(input);
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+        }
+
+        /**
+         * ==========================================================================
+         *  VALIDACIÓN EN TIEMPO REAL
+         * ==========================================================================
+         */
+        function handleInput(e) {
+            const input = e.target;
+            const value = input.value.trim();
+            const expectedStr = input.dataset.answer.toString();
+
+            // Si está vacío, limpiamos clases
+            if (value === "") {
+                input.classList.remove('incorrect');
+                return;
+            }
+
+            // ACIERTO: Tiñe de verde, bloquea y suma punto
+            if (value === expectedStr) {
+                input.classList.remove('incorrect');
+                input.classList.add('correct');
+                input.disabled = true; // Previene perder tiempo editándolo
+                correctAnswers++;
+                playSound('correct');
+                
+                // Mover foco al siguiente input vacío automáticamente (Mejora de UX)
+                const nextInput = document.querySelector('input[type="number"]:not([disabled])');
+                if(nextInput) nextInput.focus();
+
+                checkWinCondition();
+            } 
+            // ERROR: Solo marcar incorrecto si la longitud es igual o mayor a la esperada.
+            // Ej: Si la respuesta es 12, escribir "1" no es error aún. Escribir "15" es error.
+            else if (value.length >= expectedStr.length) {
+                if (!input.classList.contains('incorrect')) { // Evitar que el sonido se repita sin parar
+                    playSound('incorrect');
+                }
+                input.classList.add('incorrect');
+            } 
+            // Aún escribiendo
+            else {
+                input.classList.remove('incorrect');
+            }
+        }
+
+        function checkWinCondition() {
+            if (correctAnswers === totalCells) {
+                endGame(true); // Gana por resolver todo
+            }
+        }
+
+        /**
+         * ==========================================================================
+         *  SISTEMA DE TIEMPO (HUD) Y FIN DE PARTIDA
+         * ==========================================================================
+         */
+        function gameTick() {
+            timeRemaining--;
+            updateHUD();
+
+            if (timeRemaining <= 0) {
+                endGame(false); // Termina por tiempo
+            }
+        }
+
+        function updateHUD() {
+            // Formatear a MM:SS
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            document.getElementById('timer-text').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+            // Calcular y animar la barra de progreso
+            const percentage = (timeRemaining / GAME_DURATION) * 100;
+            const bar = document.getElementById('progress-bar');
+            bar.style.width = percentage + '%';
+
+            // Cambiar la barra a rojo/naranja en los últimos 15 segundos
+            if (timeRemaining <= 15) {
+                bar.style.backgroundColor = 'var(--incorrect-bg)';
+            } else {
+                bar.style.backgroundColor = 'var(--accent-purple)';
+            }
+        }
+
+        function endGame(perfectScore) {
+            clearInterval(timerInterval);
+            
+            const percentageResolved = (correctAnswers / totalCells) * 100;
+            
+            const iconEl = document.getElementById('result-icon');
+            const titleEl = document.getElementById('result-title');
+            const messageEl = document.getElementById('result-message');
+            const bestTimeEl = document.getElementById('result-best-time');
+            const btnReplay = document.getElementById('btn-replay');
+            const btnNextLevel = document.getElementById('btn-next-level');
+            const prizeSelectionEl = document.getElementById('prize-selection');
+            const surpriseEl = document.getElementById('result-surprise');
+
+            bestTimeEl.textContent = ""; // Limpiar contenido anterior
+            prizeSelectionEl.style.display = 'none'; // Limpiar selección
+            surpriseEl.innerHTML = ""; // Limpiar sorpresa
+            surpriseEl.style.display = 'none';
+            if (btnReplay) btnReplay.style.display = 'block';
+            if (btnNextLevel) btnNextLevel.style.display = 'none';
+
+            if (perfectScore) {
+                if (isZenMode) {
+                    iconEl.innerHTML = "🧘‍♀️";
+                    titleEl.textContent = "¡Práctica Completada!";
+                    messageEl.textContent = `¡Resuelto sin presiones! Lograste las ${totalCells} multiplicaciones a tu propio ritmo.`;
+                    titleEl.style.color = "#20b2aa";
+                } else {
+                    consecutiveFails = 0;
+                    localStorage.setItem('retroMathFails', 0);
+                    
+                    // 100% resuelto
+                    const timeTaken = GAME_DURATION - timeRemaining;
+                    const savedBest = localStorage.getItem('retroMathBest_' + currentLevelId);
+                
+                let isNewRecord = false;
+                if (!savedBest || timeTaken < parseInt(savedBest)) {
+                    localStorage.setItem('retroMathBest_' + currentLevelId, timeTaken);
+                    isNewRecord = true;
+                }
+                
+                const currentBest = localStorage.getItem('retroMathBest_' + currentLevelId);
+                
+                // Control de las 3 victorias requeridas
+                let wins = parseInt(localStorage.getItem('retroMathWins_' + currentLevelId)) || 0;
+                wins++;
+
+                if (wins >= 3) {
+                    localStorage.setItem('retroMathWins_' + currentLevelId, 0); // Reiniciar al entregar el premio
+                    
+                    playSound('level-up'); // <--- ¡Reproducir la melodía de victoria!
+
+                    // Recompensas personalizadas por género
+                    let finalIcon = currentLevelObj.medal;
+                    let finalTitle = currentLevelObj.title;
+
+                    if (playerGender === 'girl') {
+                        if (currentLevelId == 1) { finalIcon = "🎀"; finalTitle = "Princesa del Cálculo"; }
+                        else if (currentLevelId == 2) { finalIcon = "🧚‍♀️"; finalTitle = "Hada Numérica"; }
+                        else if (currentLevelId == 3) { finalIcon = "👸🏼"; finalTitle = "Reina de las Matemáticas"; }
+                    } else if (playerGender === 'boy') {
+                        if (currentLevelId == 1) { finalIcon = "⚽"; finalTitle = "Goleador del Cálculo"; }
+                        else if (currentLevelId == 2) { finalIcon = "🤖"; finalTitle = "Autobot Numérico"; }
+                        else if (currentLevelId == 3) { finalIcon = "🏎️"; finalTitle = "Campeón Matemático"; }
+                    }
+
+                    iconEl.innerHTML = finalIcon;
+                    titleEl.textContent = finalTitle;
+                    messageEl.textContent = `¡Increíble! Lograste 3 victorias y ganaste el premio. Tiempo: ${formatTime(timeTaken)}.`;
+                    
+                    // Mostrar botones para elegir el premio sorpresa
+                    prizeSelectionEl.style.display = 'flex';
+                    titleEl.style.color = "var(--accent-orange)";
+                    
+                    // Opción de pasar al siguiente nivel si no está en el nivel máximo
+                    if (currentLevelId < 3) {
+                        btnReplay.style.display = 'none';
+                        btnNextLevel.style.display = 'block';
+                        btnNextLevel.onclick = () => startGame(currentLevelId + 1);
+                    }
+                } else {
+                    // Victoria parcial (1/3 o 2/3)
+                    localStorage.setItem('retroMathWins_' + currentLevelId, wins);
+                    iconEl.innerHTML = "⭐";
+                    titleEl.textContent = `¡Nivel Superado! (${wins}/3 victorias)`;
+                    messageEl.textContent = `Resuelto en ${formatTime(timeTaken)}. ¡Gana ${3 - wins} veces más para tu premio final!`;
+                    titleEl.style.color = "var(--accent-purple)";
+                }
+
+                bestTimeEl.textContent = isNewRecord ? `¡NUEVO RÉCORD! 🏆 (${formatTime(timeTaken)})` : `Mejor tiempo actual: ${formatTime(parseInt(currentBest))}`;
+                }
+            } else {
+                consecutiveFails++;
+                localStorage.setItem('retroMathFails', consecutiveFails);
+
+                if (percentageResolved >= 70) {
+                    // Recompensa al esfuerzo
+                    iconEl.textContent = "🌟";
+                    titleEl.textContent = "Estrella de Esfuerzo Activo";
+                    messageEl.textContent = `¡Casi lo logras! Respondiste ${correctAnswers} de ${totalCells}. Tu cerebro está cada vez más rápido.`;
+                    titleEl.style.color = "var(--accent-purple)";
+                } else {
+                    // Menos de 70%
+                    iconEl.textContent = "⏱️";
+                    titleEl.textContent = "¡Sigue Practicando!";
+                    messageEl.textContent = `Lograste ${correctAnswers} aciertos. ¡La repetición es la madre de la habilidad!`;
+                    titleEl.style.color = "var(--text-dark)";
+                }
+
+                if (consecutiveFails >= 3 && !isZenMode) {
+                    messageEl.innerHTML += "<br><br><span style='color: #8a2be2;'>💡 Tip: Aprender lleva tiempo. ¡Intenta elegir la opción 'Sin Tiempo' en el menú principal!</span>";
+                }
+            }
+
+            // Sumar al total de puntos acumulados en general
+            globalScore += correctAnswers;
+            localStorage.setItem('retroMathGlobalScore', globalScore);
+            updateGlobalScoreDisplay();
+
+            switchScreen('screen-result');
+        }
+
+        // Inicializar Aplicación
+        initApp();
+    </script>
+</body>
+</html>
